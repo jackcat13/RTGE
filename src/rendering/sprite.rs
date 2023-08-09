@@ -3,7 +3,7 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Sprite {
     pub name: String,
     pub pixels: Vec<Vec<char>>,
