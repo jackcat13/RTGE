@@ -10,12 +10,17 @@ use crossterm::{
     QueueableCommand,
 };
 
+use crate::controls::direction::Direction;
+
 use super::{position::Position, sprite::Sprite};
 
+#[derive(Clone, PartialEq, Debug)]
 pub struct Entity {
     pub name: String,
     pub sprite: Sprite,
     pub position: Position,
+    pub direction: Direction,
+    pub speed: u16,
 }
 
 #[allow(dead_code)]
@@ -77,4 +82,34 @@ pub fn print_sprites_centered_on(entity_centered: &Entity, other_entities: &[Ent
         .queue(Print(" "))
         .expect("Failed to print to last position");
     stdout.flush().expect("Failed to flush terminal prints");
+}
+
+#[allow(dead_code)]
+pub fn move_entities(entities: Vec<Entity>) -> Vec<Entity> {
+    entities
+        .into_iter()
+        .map(|mut entity| {
+            if entity.direction.up {
+                entity.position.y -= entity.speed;
+            }
+            entity
+        })
+        .collect()
+}
+
+#[allow(dead_code)]
+pub fn move_entity(mut entity: Entity) -> Entity {
+    if entity.direction.up {
+        entity.position.y -= entity.speed;
+    }
+    if entity.direction.down {
+        entity.position.y += entity.speed;
+    }
+    if entity.direction.left {
+        entity.position.x -= entity.speed;
+    }
+    if entity.direction.right {
+        entity.position.x += entity.speed;
+    }
+    entity
 }
