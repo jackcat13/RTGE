@@ -1,6 +1,6 @@
 [package]
 name = "rtge"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["jackcat13 <christophehenry11@gmail.com"]
 description = "Rust Terminal Game Engine made with ♥️ in 🦀"
@@ -9,6 +9,10 @@ repository = "https://github.com/jackcat13/RTGE"
 license = "MIT OR Apache-2.0"
 keywords = ["gamedev", "graphics", "terminal", "rust"]
 categories = ["command-line-utilities", "development-tools::library"]
+
+[lib]
+name = "rtge"
+path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

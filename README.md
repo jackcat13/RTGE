@@ -39,4 +39,4 @@ The "sprite" definition can be found here : https://github.com/jackcat13/RTGE/bl
 
 You need to first define an entity to represent the sprite to print. Then, the `print_sprites` method is responsible to print the entities at the proper places.
 
-Note : To use the other features, plase take a look at the documentation and to examples (IN PROGRESS).
+Note : To use the other features, plase take a look at the documentation (in progress) and to [examples](https://github.com/jackcat13/RTGE_examples).
