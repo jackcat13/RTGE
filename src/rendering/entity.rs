@@ -10,7 +10,7 @@ use crossterm::{
     terminal::{self, size},
     QueueableCommand,
 };
-use rayon::prelude::{IntoParallelIterator, ParallelIterator};
+use rayon::prelude::{IntoParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 
 use super::{position::Position, sprite::Sprite};
 
@@ -25,12 +25,12 @@ pub struct Entity {
 }
 
 #[allow(dead_code)]
-pub async fn print_sprites(entities: &mut [Entity]) {
+pub fn print_sprites(entities: &mut [Entity]) {
     let mut stdout = stdout();
     stdout
         .queue(terminal::Clear(terminal::ClearType::All))
         .expect("Failed to clean terminal");
-    entities.iter_mut().for_each(|entity| {
+    entities.par_iter_mut().for_each(|entity| {
         print_sprite(
             &mut entity.sprite,
             entity.position.x,
@@ -45,10 +45,10 @@ fn print_sprite(sprite: &mut Sprite, x: u16, y: u16, animation_name: &Option<Str
     match animation_name {
         None => print_frame(&sprite.pixels, x, y),
         Some(name) => print_animated(sprite, x, y, &name.clone()),
-    }
+    };
 }
 
-fn print_frame(pixels: &Vec<Vec<char>>, original_x: u16, original_y: u16) {
+fn print_frame(pixels: &[Vec<char>], original_x: u16, original_y: u16) {
     let mut stdout = stdout();
     let mut x = original_x;
     let mut y = original_y;
@@ -73,12 +73,10 @@ fn print_animated(sprite: &mut Sprite, x: u16, y: u16, animation_name: &String) 
             .iter()
             .filter(|animation| animation.name.eq(animation_name))
             .for_each(|animation| {
+                let frames_number = animation.frames.clone().len();
                 let frame = animation
                     .frames
-                    .get(resolve_frame_number(
-                        sprite,
-                        sprite.animations.clone().into_par_iter().count(),
-                    ))
+                    .get(resolve_frame_number(sprite, frames_number))
                     .expect("Failed to resolve frame of animated sprite");
                 print_frame(&frame.pixels, x, y);
             }),
@@ -87,16 +85,13 @@ fn print_animated(sprite: &mut Sprite, x: u16, y: u16, animation_name: &String) 
 
 fn resolve_frame_number(sprite: &mut Sprite, animations_count: usize) -> usize {
     let mut result = 0;
-    match sprite.animation_index {
-        Some(number) => {
-            result = number;
-            if number < animations_count {
-                sprite.animation_index = Some(number + 1);
-            } else {
-                sprite.animation_index = Some(0);
-            }
+    if let Some(number) = sprite.animation_index {
+        result = number;
+        if number < animations_count - 1 {
+            sprite.animation_index = Some(number + 1);
+        } else {
+            sprite.animation_index = Some(0);
         }
-        None => {}
     };
     result
 }
@@ -110,20 +105,31 @@ pub fn print_sprites_centered_on(entity_centered: &mut Entity, other_entities: &
     stdout
         .queue(terminal::Clear(terminal::ClearType::All))
         .expect("Failed to clean terminal");
-    let mut all_entities = vec![entity_centered.clone()];
-    all_entities.append(other_entities);
-    all_entities.iter_mut().for_each(|entity| {
+
+    print_sprite(
+        &mut entity_centered.sprite,
+        middle_x,
+        middle_y,
+        &entity_centered.animation_name,
+    );
+    other_entities.par_iter_mut().for_each(|entity| {
+        // Avoid panic and therefore print if coordinates are negative
         let old_hook = panic::take_hook();
         panic::set_hook(Box::new(|_info| {}));
-        let maybe_error = std::panic::catch_unwind(|| {
-            print_sprite(
-                &mut entity.sprite.clone(),
-                middle_x + entity.position.x - entity_centered.position.x,
-                middle_y + entity.position.y - entity_centered.position.y,
-                &entity.animation_name,
+        if let Ok(result) = std::panic::catch_unwind(|| -> (u16, u16) {
+            (
+                (middle_x + entity.position.x - entity_centered.position.x),
+                (middle_y + entity.position.y - entity_centered.position.y),
             )
-        });
-        if maybe_error.is_err() {}
+        }) {
+            let (relative_x, relative_y) = result;
+            print_sprite(
+                &mut entity.sprite,
+                relative_x,
+                relative_y,
+                &entity.animation_name,
+            );
+        }
         panic::set_hook(old_hook);
     });
     stdout
@@ -136,10 +142,7 @@ pub fn print_sprites_centered_on(entity_centered: &mut Entity, other_entities: &
 
 #[allow(dead_code)]
 pub fn move_entities(entities: Vec<Entity>) -> Vec<Entity> {
-    entities
-        .into_par_iter()
-        .map(|entity| move_entity(entity))
-        .collect()
+    entities.into_par_iter().map(move_entity).collect()
 }
 
 #[allow(dead_code)]
