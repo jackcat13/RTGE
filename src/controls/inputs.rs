@@ -13,7 +13,7 @@ pub async fn process_inputs(
     let mut delay = Delay::new(Duration::from_millis(60)).fuse();
     let mut event = reader.next().fuse();
     select! {
-        _ = delay => { print!(""); },
+        _ = delay => {  },
         maybe_event = event => {
             match maybe_event {
                 Some(Ok(event)) => {

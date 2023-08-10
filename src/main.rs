@@ -33,7 +33,7 @@ async fn main() -> io::Result<()> {
 async fn game() -> io::Result<()> {
     let mut bob = Entity {
         name: "bob".to_string(),
-        sprite: load_sprite("./manualTests/bob.json".to_string()),
+        sprite: load_sprite("./manualTests/blinking_bob.json".to_string()),
         position: Position {
             x: TERM_SIZE_X / 2,
             y: TERM_SIZE_Y / 2,
@@ -45,6 +45,7 @@ async fn game() -> io::Result<()> {
             right: false,
         },
         speed: 2,
+        animation_name: Option::Some("blinking".to_string()),
     };
     let mut enemies = vec![Entity {
         name: "enemy".to_string(),
@@ -60,12 +61,11 @@ async fn game() -> io::Result<()> {
             right: false,
         },
         speed: 1,
+        animation_name: Option::None,
     }];
 
     loop {
-        let bob_async = bob.clone();
-        let enemies_async = enemies.clone();
-        print_sprites_centered_on(&bob_async, &enemies_async);
+        print_sprites_centered_on(&mut bob, &mut enemies);
 
         let inputs_rules = |event: Event| -> Result<(), String> {
             bob.direction.up = event == process_key_press_event(UP);
