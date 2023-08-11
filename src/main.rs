@@ -31,9 +31,9 @@ async fn main() -> io::Result<()> {
 }
 
 async fn game() -> io::Result<()> {
-    let mut bob = Entity {
+    let mut camel = Entity {
         name: "bob".to_string(),
-        sprite: load_sprite("./manualTests/bob.json".to_string()),
+        sprite: load_sprite("./manualTests/animated_camel.json".to_string()),
         position: Position {
             x: TERM_SIZE_X / 2,
             y: TERM_SIZE_Y / 2,
@@ -45,6 +45,7 @@ async fn game() -> io::Result<()> {
             right: false,
         },
         speed: 2,
+        animation_name: Option::Some("walking".to_string()),
     };
     let mut enemies = vec![Entity {
         name: "enemy".to_string(),
@@ -60,18 +61,17 @@ async fn game() -> io::Result<()> {
             right: false,
         },
         speed: 1,
+        animation_name: Option::None,
     }];
 
     loop {
-        let bob_async = bob.clone();
-        let enemies_async = enemies.clone();
-        print_sprites_centered_on(&bob_async, &enemies_async);
+        print_sprites_centered_on(&mut camel, &mut enemies);
 
         let inputs_rules = |event: Event| -> Result<(), String> {
-            bob.direction.up = event == process_key_press_event(UP);
-            bob.direction.down = event == process_key_press_event(DOWN);
-            bob.direction.left = event == process_key_press_event(LEFT);
-            bob.direction.right = event == process_key_press_event(RIGHT);
+            camel.direction.up = event == process_key_press_event(UP);
+            camel.direction.down = event == process_key_press_event(DOWN);
+            camel.direction.left = event == process_key_press_event(LEFT);
+            camel.direction.right = event == process_key_press_event(RIGHT);
             if event == Event::Key(KeyCode::Esc.into()) {
                 return Err("Escape event".to_string());
             }
@@ -85,7 +85,7 @@ async fn game() -> io::Result<()> {
             }
         }
 
-        bob = move_entity(bob);
+        camel = move_entity(camel);
         enemies = move_entities(enemies);
     }
     Ok(())

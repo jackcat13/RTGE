@@ -3,18 +3,27 @@ use std::fs;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
+use super::animation::Animation;
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Sprite {
     pub name: String,
     pub pixels: Vec<Vec<char>>,
+    pub animations: Option<Vec<Animation>>,
+    pub animation_index: Option<usize>,
 }
 
 #[allow(dead_code)]
 pub fn load_sprite(file_path: String) -> Sprite {
     let file_raw =
         fs::read_to_string(file_path.clone()).expect("Should have been able to read the file");
-    let sprite: Sprite = from_str(&file_raw)
-        .unwrap_or_else(|_| panic!("Failed to load sprite from file {}", file_path));
+    let mut sprite: Sprite = from_str(&file_raw).unwrap_or_else(|error| {
+        panic!(
+            "Failed to load sprite from file {} with following error : {}",
+            file_path, error
+        )
+    });
+    sprite.animation_index = Some(0);
     sprite
 }
 
