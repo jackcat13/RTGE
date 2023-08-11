@@ -1,3 +1,7 @@
+//! Provides sprites representation and loading helpers.
+
+//in mod.rs
+
 use std::fs;
 
 use serde::{Deserialize, Serialize};
@@ -5,6 +9,7 @@ use serde_json::from_str;
 
 use super::animation::Animation;
 
+/// Sprite concept representation in struct. Represents the sprite (animated or not) of an [`Entity`].
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Sprite {
     pub name: String,
@@ -13,6 +18,15 @@ pub struct Sprite {
     pub animation_index: Option<usize>,
 }
 
+/// Sprite loading helper to create the sprite 2D collection based on a JSON file. It can be static sprite or animated sprite.
+///
+/// # Examples
+///
+/// ## Load a sprite from json file
+///
+/// ```ignore
+/// let sprite = load_sprite("./src/rendering/tests/simple_sprite.json".to_string());
+/// ```
 #[allow(dead_code)]
 pub fn load_sprite(file_path: String) -> Sprite {
     let file_raw =

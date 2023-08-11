@@ -1,3 +1,7 @@
+//! Init functions automatically called during init of programs to setup terminal setup so that it's possible to play games in terminals.
+
+//in mod.rs
+
 use static_init::{constructor, destructor};
 use std::io::stdout;
 

@@ -1,3 +1,7 @@
+//! It provides helpers to display and move entities in a simple way as well as game entities representation.
+
+//in mod.rs
+
 use std::{
     io::{stdout, Write},
     panic,
@@ -14,6 +18,7 @@ use rayon::prelude::{IntoParallelIterator, IntoParallelRefMutIterator, ParallelI
 
 use super::{position::Position, sprite::Sprite};
 
+/// Representation of an entity in games that is used to be displayed in terminal. It contains attributes required to process games calculations (like position, speed, ...)
 #[derive(Clone, PartialEq, Debug)]
 pub struct Entity {
     pub name: String,
@@ -24,6 +29,33 @@ pub struct Entity {
     pub animation_name: Option<String>,
 }
 
+/// Helper function to display a collection of entities in the terminal. It relies on the entities sprites and positions to process printing.
+///
+/// # Examples
+///
+/// ## Display an entity
+///
+/// ```ignore
+///let mut camel = Entity {
+///    name: "bob".to_string(),
+///    sprite: load_sprite("./manualTests/animated_camel.json".to_string()),
+///    position: Position {
+///        x: TERM_SIZE_X / 2,
+///        y: TERM_SIZE_Y / 2,
+///    },
+///    direction: Direction {
+///        up: false,
+///        down: false,
+///        left: false,
+///        right: false,
+///    },
+///    speed: 2,
+///    animation_name: Option::Some("walking".to_string()),
+/// };
+///
+/// let entities = vec![camel];
+/// print_sprites(&mut entities);
+/// ```
 #[allow(dead_code)]
 pub fn print_sprites(entities: &mut [Entity]) {
     let mut stdout = stdout();
@@ -96,6 +128,31 @@ fn resolve_frame_number(sprite: &mut Sprite, animations_count: usize) -> usize {
     result
 }
 
+/// Similar function than [`print_sprites`] except that it takes in addition an entity on which the camera will be centered.
+///
+/// # Examples
+///
+/// ## Display two entities with camera centered on an entity
+///
+/// ```ignore
+/// let mut camel = Entity {
+///    name: "camel".to_string(),
+///    sprite: load_sprite("./manualTests/animated_camel.json".to_string()),
+///    position: Position {
+///        x: TERM_SIZE_X / 2,
+///        y: TERM_SIZE_Y / 2,
+///    },
+///    direction: Direction {
+///        up: false,
+///        down: false,
+///        left: false,
+///        right: false,
+///    },
+///    speed: 2,
+///    animation_name: Option::Some("walking".to_string()),
+/// };
+///
+/// print_sprites_centered_on(&mut camel, &mut enemies);
 #[allow(dead_code)]
 pub fn print_sprites_centered_on(entity_centered: &mut Entity, other_entities: &mut Vec<Entity>) {
     let mut stdout = stdout();
@@ -140,11 +197,7 @@ pub fn print_sprites_centered_on(entity_centered: &mut Entity, other_entities: &
     stdout.flush().expect("Failed to flush terminal prints");
 }
 
-#[allow(dead_code)]
-pub fn move_entities(entities: Vec<Entity>) -> Vec<Entity> {
-    entities.into_par_iter().map(move_entity).collect()
-}
-
+/// Move an [`Entity`] instance based on its direction and speed.
 #[allow(dead_code)]
 pub fn move_entity(mut entity: Entity) -> Entity {
     if entity.direction.up {
@@ -160,4 +213,10 @@ pub fn move_entity(mut entity: Entity) -> Entity {
         entity.position.x += entity.speed;
     }
     entity
+}
+
+/// Call [`move_entity`] in parallel on a collection of [`Entity`]
+#[allow(dead_code)]
+pub fn move_entities(entities: Vec<Entity>) -> Vec<Entity> {
+    entities.into_par_iter().map(move_entity).collect()
 }
