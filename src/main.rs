@@ -33,7 +33,7 @@ async fn main() -> io::Result<()> {
 async fn game() -> io::Result<()> {
     let mut camel = Entity {
         name: "bob".to_string(),
-        sprite: load_sprite("./manualTests/animated_camel.json".to_string()),
+        sprite: load_sprite("./manualTests/animated_colored_camel.json".to_string()),
         position: Position {
             x: TERM_SIZE_X / 2,
             y: TERM_SIZE_Y / 2,
