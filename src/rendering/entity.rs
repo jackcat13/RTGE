@@ -10,7 +10,7 @@ use std::{
 use crate::controls::direction::Direction;
 use crossterm::{
     cursor::MoveTo,
-    style::Print,
+    style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{self, size},
     QueueableCommand,
 };
@@ -75,17 +75,40 @@ pub fn print_sprites(entities: &mut [Entity]) {
 
 fn print_sprite(sprite: &mut Sprite, x: u16, y: u16, animation_name: &Option<String>) {
     match animation_name {
-        None => print_frame(&sprite.pixels, x, y),
+        None => print_frame(&sprite.pixels, x, y, &sprite.colors),
         Some(name) => print_animated(sprite, x, y, &name.clone()),
     };
 }
 
-fn print_frame(pixels: &[Vec<char>], original_x: u16, original_y: u16) {
+fn print_frame(
+    pixels: &[Vec<char>],
+    original_x: u16,
+    original_y: u16,
+    colors: &Option<Vec<Vec<u8>>>,
+) {
     let mut stdout = stdout();
     let mut x = original_x;
     let mut y = original_y;
+    let flat_colors;
+    let mut colors_iter;
+    if let Some(colors_clone) = colors.clone() {
+        flat_colors = colors_clone
+            .into_par_iter()
+            .flat_map(|color| color)
+            .collect::<Vec<u8>>();
+        colors_iter = Some(flat_colors.iter());
+    } else {
+        colors_iter = None
+    };
     pixels.iter().for_each(|line| {
         line.iter().for_each(|pixel| {
+            if let Some(colors_iter) = colors_iter.as_mut() {
+                stdout
+                    .queue(SetForegroundColor(Color::AnsiValue(
+                        *colors_iter.next().unwrap(),
+                    )))
+                    .expect("Failed to setup pixel color");
+            }
             stdout
                 .queue(MoveTo(x, y))
                 .expect("Failed to move position of cursor")
@@ -96,6 +119,7 @@ fn print_frame(pixels: &[Vec<char>], original_x: u16, original_y: u16) {
         x = original_x;
         y += 1;
     });
+    stdout.queue(ResetColor).expect("Failed to reset color");
 }
 
 fn print_animated(sprite: &mut Sprite, x: u16, y: u16, animation_name: &String) {
@@ -110,7 +134,7 @@ fn print_animated(sprite: &mut Sprite, x: u16, y: u16, animation_name: &String) 
                     .frames
                     .get(resolve_frame_number(sprite, frames_number))
                     .expect("Failed to resolve frame of animated sprite");
-                print_frame(&frame.pixels, x, y);
+                print_frame(&frame.pixels, x, y, &frame.colors);
             }),
     }
 }

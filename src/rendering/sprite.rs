@@ -9,13 +9,14 @@ use serde_json::from_str;
 
 use super::animation::Animation;
 
-/// Sprite concept representation in struct. Represents the sprite (animated or not) of an [`Entity`].
+/// Sprite concept representation in struct. Represents the sprite (animated or not) of an [`Entity`]. If the sprite is colored, Ansi values (Vec of u8) must be used (See 256 colors - [cheat sheet](https://www.ditig.com/256-colors-cheat-sheet) for more info.).
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct Sprite {
     pub name: String,
     pub pixels: Vec<Vec<char>>,
     pub animations: Option<Vec<Animation>>,
     pub animation_index: Option<usize>,
+    pub colors: Option<Vec<Vec<u8>>>,
 }
 
 /// Sprite loading helper to create the sprite 2D collection based on a JSON file. It can be static sprite or animated sprite.
